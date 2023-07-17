@@ -1,13 +1,55 @@
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { RootStackParamList } from '../routes/NavigationTypes';
+import {
+  HomeTabParamList,
+  RootStackParamList,
+} from '../routes/NavigationTypes';
+import type { CompositeScreenProps } from '@react-navigation/native';
+import type { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
+import type { StackScreenProps } from '@react-navigation/stack';
 
 /** Screen types */
-type HomeScreenProps = NativeStackScreenProps<RootStackParamList, 'Home'>;
+type HomeScreenProps = CompositeScreenProps<
+  BottomTabScreenProps<HomeTabParamList, 'HomeTab'>,
+  StackScreenProps<RootStackParamList, 'Home'>
+>;
 type LoginScreenProps = NativeStackScreenProps<RootStackParamList, 'Login'>;
 type RegisterScreenProps = NativeStackScreenProps<
   RootStackParamList,
   'Register'
 >;
+type SearchScreenProps = NativeStackScreenProps<RootStackParamList, 'Search'>;
+type MitraDetailScreenProps = NativeStackScreenProps<
+  RootStackParamList,
+  'MitraDetail'
+>;
+type SelectOrderScreenProps = NativeStackScreenProps<
+  RootStackParamList,
+  'SelectOrder'
+>;
+type SetAddressScreeenProps = NativeStackScreenProps<
+  RootStackParamList,
+  'SetAddress'
+>;
+type SelectOrderMethodScreenProps = NativeStackScreenProps<
+  RootStackParamList,
+  'SelectOrderMethod'
+>;
+type OrderScreenProps = NativeStackScreenProps<RootStackParamList, 'Order'>;
 
-/**  */
-export { HomeScreenProps, LoginScreenProps, RegisterScreenProps };
+/** Navigation types */
+type SearchScreenNavigation = SearchScreenProps['navigation'];
+type MitraDetailScreenNavigation = MitraDetailScreenProps['navigation'];
+
+export {
+  HomeScreenProps,
+  LoginScreenProps,
+  RegisterScreenProps,
+  SearchScreenProps,
+  MitraDetailScreenProps,
+  SelectOrderScreenProps,
+  SetAddressScreeenProps,
+  SelectOrderMethodScreenProps,
+  OrderScreenProps,
+  MitraDetailScreenNavigation,
+  SearchScreenNavigation,
+};

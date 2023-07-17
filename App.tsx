@@ -2,6 +2,7 @@ import React, { useCallback, useEffect } from 'react';
 import { useFonts } from 'expo-font';
 import * as SplashScreen from 'expo-splash-screen';
 import Routes from './src/routes';
+import { AuthProvider } from './src/context/AuthContext';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -25,5 +26,9 @@ export default function App() {
     return null;
   }
 
-  return <Routes />;
+  return (
+    <AuthProvider>
+      <Routes />
+    </AuthProvider>
+  );
 }

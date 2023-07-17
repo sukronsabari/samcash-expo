@@ -3,6 +3,20 @@ type RootStackParamList = {
   Login: undefined;
   Register: undefined;
   VerifyOtp: undefined;
+  Search: undefined;
+  MitraDetail: { mitraId: string };
+  SelectOrder: { mitraId: string };
+  SetAddress: undefined;
+  SelectOrderMethod: undefined;
+  Order: undefined;
+  DetailOrder: undefined;
 };
 
-export { RootStackParamList };
+type HomeTabParamList = {
+  HomeTab: undefined;
+  StatisticTab: undefined;
+  HistoryTab: undefined;
+  ProfileTab: undefined;
+};
+
+export { RootStackParamList, HomeTabParamList };

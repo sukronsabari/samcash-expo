@@ -13,6 +13,7 @@ import { RegisterScreenProps } from './ScreenType';
 import TextInputField from '../components/TextInputField';
 import PasswordInputField from '../components/PasswordInputField';
 import ButtonLarge from '../components/ButtonLarge';
+import { useAuth } from '../context/AuthContext';
 
 const { height } = Dimensions.get('window');
 
@@ -26,6 +27,12 @@ export default function RegisterScreen({ navigation }: RegisterScreenProps) {
   const emailRef = useRef<TextInput>(null);
   const passwordRef = useRef<TextInput>(null);
   const referralCodeRef = useRef<TextInput>(null);
+
+  const { onRegister } = useAuth();
+
+  const register = async () => {
+    const result = await onRegister!(email, password);
+  };
 
   return (
     <SafeAreaView className="flex-1 px-4 bg-white">
