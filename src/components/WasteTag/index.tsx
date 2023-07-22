@@ -6,9 +6,9 @@ type WasteTag = {
 
 export default function WasteTag({ tag }: WasteTag) {
   return (
-    <View className="px-3 py-1 bg-secondary rounded-sm">
+    <View className="px-3 py-1 bg-slate-100 rounded-sm">
       <Text
-        className="text-primary text-center"
+        className="text-slate-400 text-center"
         style={{ fontFamily: 'Poppins-Medium', fontSize: 10 }}
       >
         {tag}

@@ -1,16 +1,32 @@
 import { forwardRef } from 'react';
-import { TextInput } from 'react-native';
+import {
+  NativeSyntheticEvent,
+  TextInput,
+  TextInputSubmitEditingEventData,
+} from 'react-native';
 import { COLORS } from '../../utils/constant';
 
 type TextInputFieldProps = {
   value: string;
   setValue: React.Dispatch<React.SetStateAction<string>>;
   onSubmitEditing?: () => void;
+  onEndEditing?: (
+    event: NativeSyntheticEvent<TextInputSubmitEditingEventData>
+  ) => void;
   placeholder?: string;
 };
 
 const TextInputField = forwardRef<TextInput, TextInputFieldProps>(
-  ({ value, setValue, placeholder, onSubmitEditing = () => {} }, ref) => {
+  (
+    {
+      value,
+      setValue,
+      placeholder,
+      onSubmitEditing = () => {},
+      onEndEditing = () => {},
+    },
+    ref
+  ) => {
     return (
       <TextInput
         ref={ref}
@@ -21,6 +37,7 @@ const TextInputField = forwardRef<TextInput, TextInputFieldProps>(
         onChangeText={setValue}
         placeholder={placeholder}
         onSubmitEditing={onSubmitEditing}
+        onEndEditing={onEndEditing}
         cursorColor={COLORS.primary}
       />
     );

@@ -9,16 +9,48 @@ import {
 import OtpInputField from '../components/OtpInputField';
 import { KeyboardAwareScrollView } from '@pietile-native-kit/keyboard-aware-scrollview';
 import ButtonLarge from '../components/ButtonLarge';
+import { useState } from 'react';
+import { useAuth } from '../context/AuthContext';
+import { showAlert } from '../utils';
+import { VerifyOtpScreenProps } from './ScreenType';
 
 const { height } = Dimensions.get('window');
 
-export default function VerifyOtpScreen() {
+export default function VerifyOtpScreen({ navigation }: VerifyOtpScreenProps) {
+  const [otp, setOtp] = useState(['', '', '', '']);
+
+  const { onVerifyOtp, onResendOtp, authState } = useAuth();
+  const isDisable = otp.join('').length !== 4;
+
+  const handleVerifyOtp = async () => {
+    if (authState?.user?.id) {
+      const result = await onVerifyOtp!({
+        userId: authState.user.id,
+        otpCode: otp.join(''),
+      });
+
+      if (result.status === 'failed') {
+        showAlert({ title: result.status, message: result.message });
+      }
+    }
+  };
+
+  const handleResendOtp = async () => {
+    if (authState.user?.id) {
+      const result = await onResendOtp!({ userId: authState.user.id });
+
+      if (result?.data) {
+        showAlert({ title: 'Success', message: 'Otp berhasil diperbarui' });
+      }
+    }
+  };
+
   return (
     <SafeAreaView className="flex-1 px-4 bg-white">
       <KeyboardAwareScrollView
-        className="flex-1"
+        contentContainerStyle={{ flex: 1 }}
         showsVerticalScrollIndicator={false}
-        extraHeight={60}
+        extraHeight={80}
       >
         <View className="pt-14 flex-row items-center justify-center">
           <Image
@@ -40,9 +72,13 @@ export default function VerifyOtpScreen() {
           We sent OTP code to verify your email
         </Text>
         <View className="mt-10 px-6">
-          <OtpInputField />
+          <OtpInputField otp={otp} setOtp={setOtp} />
         </View>
-        <TouchableOpacity activeOpacity={0.8} className="mt-24">
+        <TouchableOpacity
+          activeOpacity={0.8}
+          className="mt-24"
+          onPress={handleResendOtp}
+        >
           <Text
             className="text-sm text-dark underline text-center"
             style={{ fontFamily: 'Poppins-Medium' }}
@@ -51,7 +87,11 @@ export default function VerifyOtpScreen() {
           </Text>
         </TouchableOpacity>
         <View className="mt-8">
-          <ButtonLarge title="Verifikasi" handlePress={() => {}} />
+          <ButtonLarge
+            disabled={isDisable}
+            title="Verifikasi"
+            handlePress={handleVerifyOtp}
+          />
         </View>
       </KeyboardAwareScrollView>
     </SafeAreaView>

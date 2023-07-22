@@ -87,7 +87,11 @@ export default function HomeTabNavigation() {
       />
       <Tab.Screen name="StatisticTab" component={StatisticScreen} />
       <Tab.Screen name="HistoryTab" component={HistoryScreen} />
-      <Tab.Screen name="ProfileTab" component={ProfileScreen} />
+      <Tab.Screen
+        name="ProfileTab"
+        component={ProfileScreen}
+        options={{ headerShown: false }}
+      />
     </Tab.Navigator>
   );
 }

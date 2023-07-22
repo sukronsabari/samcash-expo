@@ -1,12 +1,15 @@
-import React, { useCallback, useEffect } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { useFonts } from 'expo-font';
 import * as SplashScreen from 'expo-splash-screen';
 import Routes from './src/routes';
-import { AuthProvider } from './src/context/AuthContext';
+import { AuthProvider, useAuth } from './src/context/AuthContext';
+import Loading from './src/components/Loading';
 
 SplashScreen.preventAutoHideAsync();
 
 export default function App() {
+  const { isLoading } = useAuth();
+
   useEffect(() => {
     async function hideSplashScreen() {
       await SplashScreen.hideAsync();
@@ -22,8 +25,8 @@ export default function App() {
     'Poppins-Extra-Light': require('./src/assets/fonts/Poppins-ExtraLight.ttf'),
   });
 
-  if (!fontLoaded) {
-    return null;
+  if (isLoading || !fontLoaded) {
+    return <Loading />;
   }
 
   return (

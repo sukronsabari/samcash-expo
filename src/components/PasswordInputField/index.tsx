@@ -1,5 +1,10 @@
 import { forwardRef } from 'react';
-import { TextInput, View } from 'react-native';
+import {
+  NativeSyntheticEvent,
+  TextInput,
+  TextInputSubmitEditingEventData,
+  View,
+} from 'react-native';
 import { EyeIcon, EyeSlashIcon } from 'react-native-heroicons/outline';
 import { COLORS } from '../../utils/constant';
 
@@ -9,6 +14,9 @@ type PasswordInputFieldProps = {
   showPassword: boolean;
   setShowPassword: React.Dispatch<React.SetStateAction<boolean>>;
   onSubmitEditing?: () => void;
+  onEndEditing?: (
+    event: NativeSyntheticEvent<TextInputSubmitEditingEventData>
+  ) => void;
   placeholder?: string;
 };
 const PasswordInputField = forwardRef<TextInput, PasswordInputFieldProps>(
@@ -20,6 +28,7 @@ const PasswordInputField = forwardRef<TextInput, PasswordInputFieldProps>(
       showPassword,
       setShowPassword,
       onSubmitEditing = () => {},
+      onEndEditing = () => {},
     },
     ref
   ) => {
@@ -39,6 +48,7 @@ const PasswordInputField = forwardRef<TextInput, PasswordInputFieldProps>(
           placeholder={placeholder}
           secureTextEntry={!showPassword ? true : false}
           onSubmitEditing={onSubmitEditing}
+          onEndEditing={onEndEditing}
           cursorColor={COLORS.primary}
         />
         {!showPassword ? (

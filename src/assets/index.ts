@@ -18,6 +18,7 @@ import TurnRightIcon from './icons/turn-right-icon.svg';
 import NavigationIcon from './icons/navigation-icon.svg';
 import LocationBoxIcon from './icons/location-box-icon.svg';
 import OrderSuccessIcon from './icons/order-success-icon.svg';
+import DefaultProfile from './icons/defaul-profile.svg';
 
 export {
   SearchIcon,
@@ -37,4 +38,5 @@ export {
   NavigationIcon,
   LocationBoxIcon,
   OrderSuccessIcon,
+  DefaultProfile,
 };

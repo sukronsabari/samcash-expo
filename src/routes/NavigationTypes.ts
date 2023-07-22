@@ -4,7 +4,7 @@ type RootStackParamList = {
   Register: undefined;
   VerifyOtp: undefined;
   Search: undefined;
-  MitraDetail: { mitraId: string };
+  MitraDetail: { mitraId: number; latitude: string; longitude: string };
   SelectOrder: { mitraId: string };
   SetAddress: undefined;
   SelectOrderMethod: undefined;

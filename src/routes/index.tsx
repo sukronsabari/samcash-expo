@@ -26,17 +26,10 @@ const { Screen, Navigator } = createNativeStackNavigator<RootStackParamList>();
 export default function Routes() {
   const { authState } = useAuth();
 
-  // const login = async () => {
-  //   const result = await onLogin!('email', 'password');
-  //   if (result && result.error) {
-  //     console.log(result.msg)
-  //   }
-  // };
-
   return (
     <NavigationContainer>
       <Navigator>
-        {authState?.authenticated ? (
+        {authState.authenticated ? (
           <>
             <Screen
               name="Home"

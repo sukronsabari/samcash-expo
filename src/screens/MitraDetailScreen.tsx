@@ -22,16 +22,20 @@ import PhotoList from '../components/PhotoList';
 import ButtonMedium from '../components/ButtonMedium';
 import { MitraDetailScreenProps } from './ScreenType';
 import BottomBar from '../components/BottomBar';
+import { useEffect, useState } from 'react';
+import api from '../api';
+import { NearbyStoreDetail } from '../api/apiResponseType';
 
 const { width, height } = Dimensions.get('window');
 
 export default function MitraDetailScreen({
+  route,
   navigation,
 }: MitraDetailScreenProps) {
-  const mitraName = 'Bank Sampah Ramli Graha';
-  const address = 'Blk. AF, Air Putih';
-  const distance = 5;
-
+  const [mitraDetail, setMitraDetail] = useState<NearbyStoreDetail>(
+    {} as NearbyStoreDetail
+  );
+  const { mitraId, latitude, longitude } = route.params;
   const dataSampah = [
     {
       id: 1,
@@ -51,9 +55,28 @@ export default function MitraDetailScreen({
     },
   ];
 
-  const description =
-    'Bank Sampah Ramli Graha adalah mitra penukaran sampah yang di kelola oleh warga di daerah Air Putih, Samarinda. Kami menerima pembelian atau penukaran sampah dengan jenis Botol Plastik seperti botol Aqua, Le Mineral, Mizone, dan botol air mineral lain yang sejenis. Selain itu kami juga menerima sampah berupa alumunium dan besi, yang banyak terdapat pada perabotan rumah tangga seperti Panci, Wajan, Dandang dan lain lain.\n\nNote * \n- Kami hanya menerima sampah yang tidak tercampur dengan tanah atau lumpur (Kotor), namun jika sampah yang anda tukarkan hanya memilki sedikit kotoran seperti debu, kami bisa menerima sampah tersebut.';
-  const harga = 7000;
+  useEffect(() => {
+    async function fetchData() {
+      if (mitraId && latitude && longitude) {
+        await getNearbyStoreDetail();
+      }
+    }
+
+    fetchData();
+  }, [mitraId, latitude, longitude]);
+
+  const getNearbyStoreDetail = async () => {
+    const result = await api.getNearbyStoreDetail({
+      id: mitraId,
+      latitude,
+      longitude,
+    });
+
+    if (result?.data) {
+      setMitraDetail(result.data);
+      console.log(result.data);
+    }
+  };
 
   return (
     <SafeAreaView className="flex-1">
@@ -106,28 +129,48 @@ export default function MitraDetailScreen({
             className="text-dark text-xl"
             style={{ fontFamily: 'Poppins-Bold' }}
           >
-            {mitraName}
+            {mitraDetail?.name}
           </Text>
-          <View className="mb-4 flex-row items-center space-x-2">
+          <View className="flex-row items-end justify-between">
             <Text
-              className="text-slate-400 text-xs"
+              className="text-slate-400 text-sm flex-shrink"
               style={{ fontFamily: 'Poppins-Regular' }}
             >
-              {address}
+              {mitraDetail?.address}
             </Text>
-            <Text
-              className="text-slate-400 text-xs"
-              style={{ fontFamily: 'Poppins-Regular' }}
+            <View
+              className="py-1 px-2 rounded-md w-2/12 self-end"
+              style={{
+                backgroundColor:
+                  mitraDetail?.is_open === 1
+                    ? COLORS.secondary
+                    : COLORS.lightRed,
+              }}
             >
-              •
-            </Text>
-            <Text
-              className="text-slate-400 text-xs"
-              style={{ fontFamily: 'Poppins-Regular' }}
-            >
-              {distance}km
-            </Text>
+              <Text
+                style={{
+                  color:
+                    mitraDetail?.is_open === 1
+                      ? COLORS.primary
+                      : COLORS.darkRed,
+                  fontSize: 10,
+                  fontFamily: 'Poppins-Regular',
+                  textAlign: 'center',
+                }}
+              >
+                {mitraDetail?.is_open === 1 ? 'Buka' : 'Tutup'}
+              </Text>
+            </View>
           </View>
+          <Text
+            className="text-slate-400 text-sm mb-5 mt-1"
+            style={{ fontFamily: 'Poppins-Regular' }}
+          >
+            {mitraDetail?.distance?.raw === 0
+              ? '1 km'
+              : mitraDetail?.distance?.raw + 'km'}
+          </Text>
+
           <ScrollView horizontal showsHorizontalScrollIndicator={false}>
             {dataSampah.map((item) => (
               <View className="mr-2" key={item.id}>
@@ -139,7 +182,13 @@ export default function MitraDetailScreen({
             <View>
               <ButtonSmall.WithIconPrimary
                 text="Rute"
-                icon={<TurnRightIcon width={20} height={20} />}
+                icon={
+                  <TurnRightIcon
+                    width={20}
+                    height={20}
+                    fill={COLORS.secondary}
+                  />
+                }
               />
             </View>
             <View>
@@ -169,7 +218,7 @@ export default function MitraDetailScreen({
               className="text-dark text-sm"
               style={{ fontFamily: 'Poppins-Regular' }}
             >
-              {description}
+              {mitraDetail?.description}
             </Text>
           </View>
           <View className="mt-6">
@@ -189,32 +238,16 @@ export default function MitraDetailScreen({
         </View>
       </ScrollView>
       <BottomBar>
-        <View className="flex-row items-end justify-between bg-white px-4">
-          <View>
-            <Text
-              className="text-dark"
-              style={{ fontFamily: 'Poppins-Regular', fontSize: 11 }}
-            >
-              Biaya Penjemputan Sampah
-            </Text>
-            <Text
-              className="text-dark text-xl"
-              style={{ fontFamily: 'Poppins-Bold' }}
-            >
-              Rp. {harga}
-            </Text>
-          </View>
-          <View>
-            <ButtonMedium.Primary
-              handlePress={() =>
-                navigation.navigate('SelectOrder', {
-                  mitraId: 'mitra1',
-                })
-              }
-              text="Jemput"
-              icon={<LocationBoxIcon width={20} height={20} />}
-            />
-          </View>
+        <View className="items-end bg-white px-4">
+          <ButtonMedium.Primary
+            handlePress={() =>
+              navigation.navigate('SelectOrder', {
+                mitraId: 'mitra1',
+              })
+            }
+            text="Lanjutkan"
+            icon={<LocationBoxIcon width={20} height={20} />}
+          />
         </View>
       </BottomBar>
     </SafeAreaView>

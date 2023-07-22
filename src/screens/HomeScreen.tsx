@@ -18,6 +18,7 @@ import ButtonMenu from '../components/ButtonMenu';
 import SearchInputPlaceholder from '../components/SearchInputPlaceholder';
 
 import { COLORS } from '../utils/constant';
+import Loading from '../components/Loading';
 
 const { width, height } = Dimensions.get('window');
 const { statusBarHeight } = Constants;

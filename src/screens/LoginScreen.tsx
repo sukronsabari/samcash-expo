@@ -7,6 +7,9 @@ import {
   Dimensions,
   TouchableOpacity,
   TextInput,
+  Alert,
+  NativeSyntheticEvent,
+  TextInputSubmitEditingEventData,
 } from 'react-native';
 import { KeyboardAwareScrollView } from '@pietile-native-kit/keyboard-aware-scrollview';
 import { LoginScreenProps } from './ScreenType';
@@ -14,21 +17,69 @@ import TextInputField from '../components/TextInputField';
 import PasswordInputField from '../components/PasswordInputField';
 import ButtonLarge from '../components/ButtonLarge';
 import { useIsFocused } from '@react-navigation/native';
+import { useAuth } from '../context/AuthContext';
+import { showAlert } from '../utils';
 
 const { height } = Dimensions.get('window');
 
 export default function LoginScreen({ navigation }: LoginScreenProps) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [validEmail, setValidEmail] = useState<boolean>();
+  const [validPassword, setValidPassword] = useState<boolean>();
   const [showPassword, setShowPassword] = useState(false);
 
   const passwordRef = useRef<TextInput>(null);
-  const screenIsFocused = useIsFocused();
 
-  useEffect(() => {
-    setEmail('');
-    setPassword('');
-  }, [screenIsFocused]);
+  const { onLogin } = useAuth();
+
+  const isDisabled = email === '' || password === '';
+
+  const checkEmail = (email: string): boolean => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
+
+  const handleEndEditingEmail = (
+    event: NativeSyntheticEvent<TextInputSubmitEditingEventData>
+  ) => {
+    const valid = checkEmail(event.nativeEvent.text.trim());
+    if (!valid) {
+      setValidEmail(false);
+    } else {
+      setValidEmail(true);
+    }
+  };
+
+  const handleEndEditingPassword = (
+    event: NativeSyntheticEvent<TextInputSubmitEditingEventData>
+  ) => {
+    const valid = event.nativeEvent.text.trim().length > 3;
+    if (!valid) {
+      setValidPassword(false);
+    } else {
+      setValidPassword(true);
+    }
+  };
+
+  const handleLogin = async () => {
+    const result = await onLogin!({ email, password });
+
+    if (result?.status === 'failed') {
+      if (result?.data?.is_verify === false) {
+        showAlert({
+          title: result?.status,
+          message: result?.message,
+          handlePress: () => navigation.navigate('VerifyOtp'),
+        });
+      } else {
+        showAlert({
+          title: result.status,
+          message: result.message,
+        });
+      }
+    }
+  };
 
   return (
     <SafeAreaView className="flex-1 px-4 bg-white">
@@ -62,7 +113,16 @@ export default function LoginScreen({ navigation }: LoginScreenProps) {
             setValue={setEmail}
             placeholder="Email"
             onSubmitEditing={() => passwordRef.current?.focus()}
+            onEndEditing={handleEndEditingEmail}
           />
+          {email.trim().length !== 0 && !validEmail ? (
+            <Text
+              style={{ fontFamily: 'Poppins-Regular' }}
+              className="text-red-400 text-xs mt-1"
+            >
+              Email tidak valid
+            </Text>
+          ) : null}
         </View>
         <View className="mb-3">
           <Text
@@ -78,7 +138,16 @@ export default function LoginScreen({ navigation }: LoginScreenProps) {
             placeholder="Password"
             showPassword={showPassword}
             setShowPassword={setShowPassword}
+            onEndEditing={handleEndEditingPassword}
           />
+          {password.trim().length !== 0 && !validPassword ? (
+            <Text
+              style={{ fontFamily: 'Poppins-Regular' }}
+              className="text-red-400 text-xs mt-1"
+            >
+              Character password harus lebih dari 3
+            </Text>
+          ) : null}
         </View>
         <TouchableOpacity className="items-end" activeOpacity={0.8}>
           <Text
@@ -89,7 +158,11 @@ export default function LoginScreen({ navigation }: LoginScreenProps) {
           </Text>
         </TouchableOpacity>
         <View className="mt-8">
-          <ButtonLarge title="Login" handlePress={() => {}} />
+          <ButtonLarge
+            disabled={isDisabled}
+            title="Login"
+            handlePress={handleLogin}
+          />
         </View>
         <View className="mt-8 flex-row justify-center items-center space-x-1">
           <Text

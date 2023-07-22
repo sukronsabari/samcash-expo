@@ -27,6 +27,8 @@ import {
 import { SearchIcon } from '../assets';
 import { GooglePlaceDetail } from 'react-native-google-places-autocomplete';
 import MitraItem from '../components/MitraItem';
+import api from '../api';
+import { NearbyStore } from '../api/apiResponseType';
 
 const { width, height } = Dimensions.get('window');
 const ASPECT_RATIO = width / height;
@@ -60,6 +62,10 @@ const App = () => {
   const [errorMsg, setErrorMsg] = useState('');
   const mapRef = useRef<MapView>(null);
 
+  const [nearbyStore, setNearbyStore] = useState<NearbyStore[]>(
+    [] as NearbyStore[]
+  );
+
   useEffect(() => {
     async function getLocationPermission() {
       try {
@@ -80,6 +86,16 @@ const App = () => {
     getLocationPermission();
   }, []);
 
+  useEffect(() => {
+    async function fetchData() {
+      if (currentLocation) {
+        await getNearbyStore();
+      }
+    }
+
+    fetchData();
+  }, [currentLocation]);
+
   const moveCameraToPlace = (details: GooglePlaceDetail | null) => {
     const position = {
       latitude: details?.geometry.location.lat || 0,
@@ -98,6 +114,17 @@ const App = () => {
     if (camera) {
       camera.center = position;
       mapRef.current?.animateCamera(camera, { duration: 1000 });
+    }
+  };
+
+  const getNearbyStore = async () => {
+    const result = await api.getNearbyStore({
+      latitude: currentLocation?.coords.latitude.toString() || '0',
+      longitude: currentLocation?.coords.longitude.toString() || '0',
+    });
+
+    if (result?.data) {
+      setNearbyStore(result.data);
     }
   };
 
@@ -145,8 +172,15 @@ const App = () => {
         </Text>
         <BottomSheetFlatList
           contentContainerStyle={{ paddingTop: 15, paddingHorizontal: 16 }}
-          data={[1, 2, 3, 4, 5]}
-          renderItem={({ item }) => <MitraItem key={item} />}
+          data={nearbyStore}
+          renderItem={({ item }) => (
+            <MitraItem
+              key={item.id}
+              {...item}
+              isOpen={item.is_open}
+              distance={item.distance.formated}
+            />
+          )}
         />
       </BottomSheet>
     </GestureHandlerRootView>

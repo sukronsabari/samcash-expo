@@ -8,6 +8,8 @@ type ButtonLargeProps = {
   backgroundColor?: string;
   color?: string;
   borderColor?: string;
+  disabled?: boolean;
+  disabledBgColor?: string;
 };
 
 export default function ButtonLarge({
@@ -17,10 +19,17 @@ export default function ButtonLarge({
   backgroundColor = COLORS.primary,
   color = 'white',
   borderColor = 'transparent',
+  disabled = false,
+  disabledBgColor = '#64748b',
 }: ButtonLargeProps) {
   return (
     <TouchableOpacity
-      style={{ backgroundColor, borderColor, borderWidth: 1 }}
+      disabled={disabled}
+      style={{
+        backgroundColor: disabled ? disabledBgColor : backgroundColor,
+        borderColor,
+        borderWidth: 1,
+      }}
       className={`w-full py-3 ${roundedFull ? 'rounded-full' : 'rounded-lg'}`}
       onPress={handlePress}
       activeOpacity={0.9}

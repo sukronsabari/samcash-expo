@@ -4,4 +4,6 @@ export const COLORS = {
   textDark: '#1e293b',
   inputBorder: '#cbd5e1',
   placeholder: '#94a3b8',
+  darkRed: '#ef4444',
+  lightRed: '#fee2e2',
 };

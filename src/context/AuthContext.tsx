@@ -3,111 +3,286 @@ import {
   createContext,
   useContext,
   useEffect,
+  useMemo,
   useState,
 } from 'react';
-import axios from 'axios';
-import * as SecureStore from 'expo-secure-store';
+import * as SecureStorage from 'expo-secure-store';
+import { axiosInstance } from '../api/interceptions';
+import { apiCall } from '../api';
+import {
+  GeneralErrorResponse,
+  LoginResponse,
+  LoginResponseNeedVerifyOtp,
+  RegisterResponse,
+  VerifyOtpResponse,
+} from '../api/apiResponseType';
+import axios, { AxiosError } from 'axios';
 
+type AuthState = {
+  accessToken: string | null;
+  user?: {
+    id: number | null;
+  };
+  authenticated: boolean | null;
+};
 type RegisterParams = {
+  name: string;
   email: string;
   password: string;
 };
 
+type LoginParams = {
+  email: string;
+  password: string;
+};
+type VerifyOtp = {
+  userId: number;
+  otpCode: string;
+};
 type AuthProps = {
-  authState?: {
-    token: string | null;
-    authenticated: boolean | null;
-    isLoading: boolean;
-  };
-  onRegister?: (email: string, password: string) => Promise<any>;
-  onLogin?: (email: string, password: string) => Promise<any>;
+  isLoading: boolean;
+  authState: AuthState;
+  onLogin?: ({ email, password }: LoginParams) => Promise<any>;
+  onRegister?: ({
+    name,
+    email,
+    password,
+  }: RegisterParams) => Promise<RegisterResponse | GeneralErrorResponse>;
+  onVerifyOtp?: ({ userId, otpCode }: VerifyOtp) => Promise<any>;
+  onResendOtp?: ({ userId }: { userId: number }) => Promise<any>;
   onLogout?: () => Promise<any>;
 };
 
-const TOKEN_KEY = 'samcasch_jwt';
-const baseUrl = 'https://api.developbetterapps.com';
 const AuthContext = createContext<AuthProps>({} as AuthProps);
 
 export const useAuth = () => useContext(AuthContext);
 
 export const AuthProvider = ({ children }: { children: ReactElement }) => {
-  const [authState, setAuthState] = useState<{
-    token: string | null;
-    authenticated: boolean | null;
-    isLoading: boolean;
-  }>({
-    token: null,
+  const [authState, setAuthState] = useState<AuthState>({
+    accessToken: null,
+    user: {
+      id: null,
+    },
     authenticated: null,
-    isLoading: true,
   });
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const loadToken = async () => {
-      const token = await SecureStore.getItemAsync(TOKEN_KEY);
-      console.log('token di securestore: ', token);
-
-      if (token) {
-        axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-
-        setAuthState({
-          token,
-          authenticated: true,
-          isLoading: false,
-        });
-      }
-
-      loadToken();
-    };
+    setIsLoading(true);
+    checkAuthenticationStatus();
+    setIsLoading(false);
   }, []);
 
-  const register = async (email: string, password: string) => {
-    try {
-      await axios.post(`${baseUrl}/users`, { email, password });
-    } catch (e) {
-      return { error: true, msg: (e as any).response.data.msg };
+  const checkAuthenticationStatus = async () => {
+    const accessToken = await SecureStorage.getItemAsync(
+      process.env.EXPO_PUBLIC_ACCESS_TOKEN_KEY_NAME!
+    );
+    const userId = await SecureStorage.getItemAsync('user_id');
+
+    if (accessToken) {
+      console.log(accessToken);
+      axiosInstance.defaults.headers.common.Authorization = `Bearer ${accessToken}`;
+      setAuthState((prev) => ({
+        ...prev,
+        accessToken,
+        authenticated: true,
+      }));
+
+      if (userId) {
+        setAuthState((prev) => ({
+          ...prev,
+          user: {
+            id: parseInt(userId),
+          },
+        }));
+      }
     }
   };
 
-  const login = async (email: string, password: string) => {
+  async function register({
+    name,
+    email,
+    password,
+  }: RegisterParams): Promise<RegisterResponse | GeneralErrorResponse> {
     try {
-      const result = await axios.post(`${baseUrl}/auth`, { email, password });
-
-      setAuthState({
-        token: result.data.token,
-        authenticated: true,
-        isLoading: false,
+      setIsLoading(true);
+      const response: RegisterResponse = await apiCall({
+        method: 'POST',
+        endpoint: '/auth/register',
+        data: {
+          name,
+          email,
+          password,
+        },
       });
 
-      axios.defaults.headers.common[
-        'Authorization'
-      ] = `Bearer ${result.data.token}`;
+      await SecureStorage.setItemAsync(
+        'user_id',
+        response.data.user_id.toString()
+      );
 
-      await SecureStore.setItemAsync(TOKEN_KEY, result.data.token);
+      console.log(response);
+      setAuthState({
+        accessToken: null,
+        user: {
+          id: response.data.user_id,
+        },
+        authenticated: false,
+      });
+      return response;
+    } catch (error: unknown) {
+      const axiosError = error as AxiosError;
 
-      return result;
-    } catch (e) {
-      return { error: true, msg: (e as any).response.data.msg };
+      if (axios.isAxiosError(axiosError)) {
+        if (axiosError.response) {
+          console.log(axiosError.response.data);
+          return axiosError.response.data as GeneralErrorResponse;
+        }
+      }
+
+      return {
+        status: 'failed',
+        message: 'Periksa Koneksi Internet Anda',
+      } as GeneralErrorResponse;
+    } finally {
+      setIsLoading(false);
     }
-  };
+  }
 
-  const logout = async () => {
-    await SecureStore.deleteItemAsync(TOKEN_KEY);
+  async function login({ email, password }: LoginParams) {
+    try {
+      setIsLoading(true);
+      const response = await apiCall({
+        method: 'POST',
+        endpoint: '/auth/login',
+        data: {
+          email,
+          password,
+        },
+      });
 
-    axios.defaults.headers.common['Authorization'] = '';
+      const accessToken = response.data;
 
-    setAuthState({
-      token: null,
-      authenticated: false,
-      isLoading: false,
-    });
-  };
+      await SecureStorage.setItemAsync(
+        process.env.EXPO_PUBLIC_ACCESS_TOKEN_KEY_NAME!,
+        accessToken
+      );
 
-  const value = {
-    onRegister: register,
-    onLogin: login,
-    onLogout: logout,
-    authState,
-  };
+      setAuthState((prev) => ({
+        ...prev,
+        accessToken,
+        authenticated: true,
+      }));
+    } catch (error) {
+      const axiosError = error as AxiosError;
+
+      if (axios.isAxiosError(axiosError)) {
+        if (axiosError.response) {
+          const result = axiosError.response.data as LoginResponseNeedVerifyOtp;
+          return result;
+        }
+      }
+
+      return {
+        status: 'failed',
+        message: 'Periksa Koneksi Internet Anda',
+      } as GeneralErrorResponse;
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
+  async function verifyOtp({ userId, otpCode }: VerifyOtp) {
+    try {
+      setIsLoading(true);
+      const response = await apiCall({
+        method: 'POST',
+        endpoint: '/auth/verifikasi-otp',
+        data: {
+          user_id: userId,
+          otp_code: otpCode,
+        },
+      });
+
+      console.log(response);
+
+      if (response.data.accessToken) {
+        setAuthState((prev) => ({
+          ...prev,
+          accessToken: response.data.accessToken,
+          authenticated: true,
+        }));
+      }
+      return response;
+    } catch (error) {
+      const axiosError = error as AxiosError;
+
+      if (axios.isAxiosError(axiosError)) {
+        if (axiosError.response) {
+          const result = axiosError.response.data;
+          return result;
+        }
+      }
+
+      return {
+        status: 'failed',
+        message: 'Periksa Koneksi Internet Anda',
+      } as GeneralErrorResponse;
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
+  async function resendOtp({ userId }: { userId: number }) {
+    try {
+      const response = await apiCall({
+        method: 'POST',
+        endpoint: '/auth/resend-otp',
+        data: {
+          user_id: userId,
+        },
+      });
+
+      console.log(response);
+      return response;
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
+  async function logout() {
+    try {
+      setIsLoading(true);
+      setAuthState({
+        accessToken: null,
+        user: {
+          id: null,
+        },
+        authenticated: false,
+      });
+
+      await SecureStorage.deleteItemAsync(
+        process.env.EXPO_PUBLIC_ACCESS_TOKEN_KEY_NAME!
+      );
+    } catch (error) {
+      console.log(error);
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
+  const value: AuthProps = useMemo(
+    () => ({
+      isLoading,
+      authState,
+      onLogout: logout,
+      onLogin: login,
+      onRegister: register,
+      onVerifyOtp: verifyOtp,
+      onResendOtp: resendOtp,
+    }),
+    [authState]
+  );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };

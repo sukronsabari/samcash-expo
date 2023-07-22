@@ -17,6 +17,10 @@ type RegisterScreenProps = NativeStackScreenProps<
   RootStackParamList,
   'Register'
 >;
+type VerifyOtpScreenProps = NativeStackScreenProps<
+  RootStackParamList,
+  'VerifyOtp'
+>;
 type SearchScreenProps = NativeStackScreenProps<RootStackParamList, 'Search'>;
 type MitraDetailScreenProps = NativeStackScreenProps<
   RootStackParamList,
@@ -44,6 +48,7 @@ export {
   HomeScreenProps,
   LoginScreenProps,
   RegisterScreenProps,
+  VerifyOtpScreenProps,
   SearchScreenProps,
   MitraDetailScreenProps,
   SelectOrderScreenProps,

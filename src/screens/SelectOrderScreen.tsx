@@ -1,11 +1,12 @@
 import { View, Text, ScrollView, SafeAreaView, FlatList } from 'react-native';
 import ButtonSmall from '../components/ButtonSmall';
 import { COLORS } from '../utils/constant';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import WasteCard from '../components/WasteCard';
 import BottomBar from '../components/BottomBar';
 import ButtonLarge from '../components/ButtonLarge';
 import { SelectOrderScreenProps } from './ScreenType';
+import api from '../api';
 
 export default function SelectOrderScreen({
   navigation,
@@ -27,6 +28,13 @@ export default function SelectOrderScreen({
     },
   ];
 
+  useEffect(() => {}, []);
+
+  // const getWasteData = async () => {
+  //   const result = await api.getWasteCategories();
+
+  //   if (result.data)
+  // }
   return (
     <SafeAreaView className="flex-1">
       <ScrollView className="flex-1 pt-4 px-4 bg-white">

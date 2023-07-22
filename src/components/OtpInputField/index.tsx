@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import React, { useRef, useState } from 'react';
 import {
   View,
   Text,
@@ -8,8 +8,12 @@ import {
 } from 'react-native';
 import { COLORS } from '../../utils/constant';
 
-export default function OtpInputField() {
-  const [otp, setOtp] = useState(['', '', '', '']);
+type OtpInputFieldProps = {
+  otp: string[];
+  setOtp: React.Dispatch<React.SetStateAction<string[]>>;
+};
+
+export default function OtpInputField({ otp, setOtp }: OtpInputFieldProps) {
   const inputRefs = useRef<(TextInput | null)[]>([]);
 
   const handleChangeText = (value: string, index: number) => {
