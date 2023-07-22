@@ -95,13 +95,13 @@ export interface Distance {
 }
 
 export interface WasteCategoriesResponse {
-  data: Datum[];
+  data: WasteCategory[];
   status: string;
 }
 
 export interface WasteCategory {
   category_name: string;
-  children: Datum[];
+  children: WasteCategory[];
   id: number;
   parent_id: number | null;
 }
