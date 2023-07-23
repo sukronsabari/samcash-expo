@@ -38,8 +38,8 @@ export const apiCall = async ({
 
 const api = (() => {
   interface NearbyStoreParams {
-    longitude: string;
-    latitude: string;
+    longitude: number;
+    latitude: number;
   }
 
   interface NearbyStoreDetailParams extends NearbyStoreParams {

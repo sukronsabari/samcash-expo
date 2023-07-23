@@ -29,6 +29,7 @@ import { GooglePlaceDetail } from 'react-native-google-places-autocomplete';
 import MitraItem from '../components/MitraItem';
 import api from '../api';
 import { NearbyStore } from '../api/apiResponseType';
+import Loading from '../components/Loading';
 
 const { width, height } = Dimensions.get('window');
 const ASPECT_RATIO = width / height;
@@ -41,12 +42,12 @@ const INITIAL_POSITION = {
   longitudeDelta: LONGITUDE_DELTA,
 };
 
-// const indonesiaRegion = {
-//   latitude: -2.5489,
-//   longitude: 118.0149,
-//   latitudeDelta: 10,
-//   longitudeDelta: 10,
-// };
+type LocationProps = {
+  latitude: number;
+  longitude: number;
+  latitudeDelta: number;
+  longitudeDelta: number;
+};
 
 const openAppSettings = () => {
   if (Platform.OS === 'android') {
@@ -55,10 +56,15 @@ const openAppSettings = () => {
 };
 
 const App = () => {
-  const [data, setData] = useState([1, 2, 3, 4, 5]);
-  const [currentLocation, setCurrentLocation] =
-    useState<Location.LocationObject | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [currentLocation, setCurrentLocation] = useState<LocationProps>({
+    latitude: 0,
+    longitude: 0,
+    latitudeDelta: LATITUDE_DELTA,
+    longitudeDelta: LONGITUDE_DELTA,
+  });
   const [locationResult, setLocationResult] = useState<LatLng>();
+
   const [errorMsg, setErrorMsg] = useState('');
   const mapRef = useRef<MapView>(null);
 
@@ -76,10 +82,17 @@ const App = () => {
         }
 
         const location = await Location.getCurrentPositionAsync({});
-        setCurrentLocation(location);
-        console.log(location);
+        if (location) {
+          setCurrentLocation((prev) => ({
+            ...prev,
+            latitude: location.coords.latitude,
+            longitude: location.coords.longitude,
+          }));
+        }
       } catch (error) {
         console.log(error);
+      } finally {
+        setIsLoading(false);
       }
     }
 
@@ -119,14 +132,18 @@ const App = () => {
 
   const getNearbyStore = async () => {
     const result = await api.getNearbyStore({
-      latitude: currentLocation?.coords.latitude.toString() || '0',
-      longitude: currentLocation?.coords.longitude.toString() || '0',
+      latitude: currentLocation.latitude,
+      longitude: currentLocation.longitude,
     });
 
     if (result?.data) {
       setNearbyStore(result.data);
     }
   };
+
+  if (isLoading) {
+    return <Loading />;
+  }
 
   return (
     <GestureHandlerRootView className="flex-1">
@@ -137,11 +154,11 @@ const App = () => {
         initialRegion={INITIAL_POSITION}
         rotateEnabled={false}
       >
-        {currentLocation && (
+        {currentLocation.longitude && currentLocation.longitude && (
           <Marker
             coordinate={{
-              latitude: currentLocation?.coords.latitude,
-              longitude: currentLocation?.coords.longitude,
+              latitude: currentLocation.latitude,
+              longitude: currentLocation.longitude,
             }}
           />
         )}
