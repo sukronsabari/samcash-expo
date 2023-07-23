@@ -33,17 +33,16 @@ export default function LoginScreen({ navigation }: LoginScreenProps) {
 
   const { onLogin } = useAuth();
 
-  const isDisabled = email === '' || password === '';
-
   const checkEmail = (email: string): boolean => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return emailRegex.test(email);
   };
 
-  const handleEndEditingEmail = (
-    event: NativeSyntheticEvent<TextInputSubmitEditingEventData>
-  ) => {
-    const valid = checkEmail(event.nativeEvent.text.trim());
+  const isDisabled = !validEmail || !validPassword;
+
+  const handleEmailChange = (value: string) => {
+    setEmail(value);
+    const valid = checkEmail(value);
     if (!valid) {
       setValidEmail(false);
     } else {
@@ -51,10 +50,9 @@ export default function LoginScreen({ navigation }: LoginScreenProps) {
     }
   };
 
-  const handleEndEditingPassword = (
-    event: NativeSyntheticEvent<TextInputSubmitEditingEventData>
-  ) => {
-    const valid = event.nativeEvent.text.trim().length > 3;
+  const handlePasswordChange = (password: string) => {
+    setPassword(password);
+    const valid = password.trim().length > 3;
     if (!valid) {
       setValidPassword(false);
     } else {
@@ -63,20 +61,22 @@ export default function LoginScreen({ navigation }: LoginScreenProps) {
   };
 
   const handleLogin = async () => {
-    const result = await onLogin!({ email, password });
+    if (email.trim() && password.trim()) {
+      const result = await onLogin!({ email, password });
 
-    if (result?.status === 'failed') {
-      if (result?.data?.is_verify === false) {
-        showAlert({
-          title: result?.status,
-          message: result?.message,
-          handlePress: () => navigation.navigate('VerifyOtp'),
-        });
-      } else {
-        showAlert({
-          title: result.status,
-          message: result.message,
-        });
+      if (result) {
+        if ('data' in result && result.data.is_verify === false) {
+          showAlert({
+            title: result.status,
+            message: result.message,
+            handlePress: () => navigation.navigate('VerifyOtp'),
+          });
+        } else {
+          showAlert({
+            title: result.status,
+            message: result.message,
+          });
+        }
       }
     }
   };
@@ -110,10 +110,9 @@ export default function LoginScreen({ navigation }: LoginScreenProps) {
           </Text>
           <TextInputField
             value={email}
-            setValue={setEmail}
+            handleChange={handleEmailChange}
             placeholder="Email"
             onSubmitEditing={() => passwordRef.current?.focus()}
-            onEndEditing={handleEndEditingEmail}
           />
           {email.trim().length !== 0 && !validEmail ? (
             <Text
@@ -134,11 +133,10 @@ export default function LoginScreen({ navigation }: LoginScreenProps) {
           <PasswordInputField
             ref={passwordRef}
             password={password}
-            setPassword={setPassword}
+            handleChange={handlePasswordChange}
             placeholder="Password"
             showPassword={showPassword}
             setShowPassword={setShowPassword}
-            onEndEditing={handleEndEditingPassword}
           />
           {password.trim().length !== 0 && !validPassword ? (
             <Text

@@ -10,7 +10,7 @@ import { COLORS } from '../../utils/constant';
 
 type PasswordInputFieldProps = {
   password: string;
-  setPassword: React.Dispatch<React.SetStateAction<string>>;
+  handleChange: (password: string) => void;
   showPassword: boolean;
   setShowPassword: React.Dispatch<React.SetStateAction<boolean>>;
   onSubmitEditing?: () => void;
@@ -23,7 +23,7 @@ const PasswordInputField = forwardRef<TextInput, PasswordInputFieldProps>(
   (
     {
       password,
-      setPassword,
+      handleChange,
       placeholder = '******',
       showPassword,
       setShowPassword,
@@ -44,7 +44,7 @@ const PasswordInputField = forwardRef<TextInput, PasswordInputFieldProps>(
           style={{ fontFamily: 'Poppins-Regular' }}
           placeholderTextColor={COLORS.placeholder}
           value={password}
-          onChangeText={setPassword}
+          onChangeText={handleChange}
           placeholder={placeholder}
           secureTextEntry={!showPassword ? true : false}
           onSubmitEditing={onSubmitEditing}

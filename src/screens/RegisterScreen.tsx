@@ -91,7 +91,7 @@ export default function RegisterScreen({ navigation }: RegisterScreenProps) {
               </Text>
               <TextInputField
                 value={fullname}
-                setValue={setFullname}
+                handleChange={(value) => setFullname(value)}
                 placeholder="Fullname"
                 onSubmitEditing={() => emailRef.current?.focus()}
               />
@@ -106,7 +106,7 @@ export default function RegisterScreen({ navigation }: RegisterScreenProps) {
               <TextInputField
                 ref={emailRef}
                 value={email}
-                setValue={setEmail}
+                handleChange={(value) => setEmail(value)}
                 placeholder="Email"
                 onSubmitEditing={() => passwordRef.current?.focus()}
               />
@@ -121,7 +121,7 @@ export default function RegisterScreen({ navigation }: RegisterScreenProps) {
               <PasswordInputField
                 ref={passwordRef}
                 password={password}
-                setPassword={setPassword}
+                handleChange={(password) => setPassword(password)}
                 placeholder="Password"
                 showPassword={showPassword}
                 setShowPassword={setShowPassword}
@@ -138,7 +138,7 @@ export default function RegisterScreen({ navigation }: RegisterScreenProps) {
               <TextInputField
                 ref={referralCodeRef}
                 value={referralCode}
-                setValue={setReferralCode}
+                handleChange={(value) => setReferralCode(value)}
               />
             </View>
             <View className="mt-8">

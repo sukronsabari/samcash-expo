@@ -42,7 +42,12 @@ type VerifyOtp = {
 type AuthProps = {
   isLoading: boolean;
   authState: AuthState;
-  onLogin?: ({ email, password }: LoginParams) => Promise<any>;
+  onLogin?: ({
+    email,
+    password,
+  }: LoginParams) => Promise<
+    LoginResponseNeedVerifyOtp | GeneralErrorResponse | undefined
+  >;
   onRegister?: ({
     name,
     email,
@@ -135,7 +140,6 @@ export const AuthProvider = ({ children }: { children: ReactElement }) => {
 
       if (axios.isAxiosError(axiosError)) {
         if (axiosError.response) {
-          console.log(axiosError.response.data);
           return axiosError.response.data as GeneralErrorResponse;
         }
       }
@@ -152,7 +156,7 @@ export const AuthProvider = ({ children }: { children: ReactElement }) => {
   async function login({ email, password }: LoginParams) {
     try {
       setIsLoading(true);
-      const response = await apiCall({
+      const response: LoginResponse = await apiCall({
         method: 'POST',
         endpoint: '/auth/login',
         data: {
@@ -174,19 +178,40 @@ export const AuthProvider = ({ children }: { children: ReactElement }) => {
         authenticated: true,
       }));
     } catch (error) {
-      const axiosError = error as AxiosError;
+      const axiosError = error as AxiosError<
+        GeneralErrorResponse | LoginResponseNeedVerifyOtp
+      >;
 
       if (axios.isAxiosError(axiosError)) {
         if (axiosError.response) {
-          const result = axiosError.response.data as LoginResponseNeedVerifyOtp;
-          return result;
+          const responseData = axiosError.response.data;
+
+          // Check if the error response is of type LoginResponseNeedVerifyOtp
+          if (
+            'data' in responseData &&
+            responseData?.data?.is_verify !== undefined
+          ) {
+            const data: LoginResponseNeedVerifyOtp = {
+              status: responseData.status,
+              message: responseData.message,
+              data: responseData.data,
+            };
+            return data;
+          } else {
+            const data: GeneralErrorResponse = {
+              status: responseData.status,
+              message: responseData.message,
+            };
+
+            return data;
+          }
         }
       }
 
       return {
         status: 'failed',
-        message: 'Periksa Koneksi Internet Anda',
-      } as GeneralErrorResponse;
+        message: 'Terjadi Kesalahan',
+      };
     } finally {
       setIsLoading(false);
     }
@@ -218,15 +243,19 @@ export const AuthProvider = ({ children }: { children: ReactElement }) => {
       const axiosError = error as AxiosError;
 
       if (axios.isAxiosError(axiosError)) {
-        if (axiosError.response) {
-          const result = axiosError.response.data;
-          return result;
+        if (axiosError.response && axiosError.response?.data) {
+          const data = axiosError.response.data as GeneralErrorResponse;
+
+          return {
+            status: data.status,
+            message: data.message,
+          };
         }
       }
 
       return {
         status: 'failed',
-        message: 'Periksa Koneksi Internet Anda',
+        message: 'Terjadi Kesalahan',
       } as GeneralErrorResponse;
     } finally {
       setIsLoading(false);

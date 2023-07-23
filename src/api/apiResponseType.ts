@@ -31,8 +31,7 @@ export interface Data {
 }
 
 export interface GeneralErrorResponse {
-  message?: string;
-  data: string;
+  message: string;
   status: string;
 }
 

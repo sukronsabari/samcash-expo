@@ -8,7 +8,7 @@ import { COLORS } from '../../utils/constant';
 
 type TextInputFieldProps = {
   value: string;
-  setValue: React.Dispatch<React.SetStateAction<string>>;
+  handleChange: (value: string) => void;
   onSubmitEditing?: () => void;
   onEndEditing?: (
     event: NativeSyntheticEvent<TextInputSubmitEditingEventData>
@@ -20,7 +20,7 @@ const TextInputField = forwardRef<TextInput, TextInputFieldProps>(
   (
     {
       value,
-      setValue,
+      handleChange,
       placeholder,
       onSubmitEditing = () => {},
       onEndEditing = () => {},
@@ -34,7 +34,7 @@ const TextInputField = forwardRef<TextInput, TextInputFieldProps>(
         placeholderTextColor={COLORS.placeholder}
         style={{ fontFamily: 'Poppins-Regular' }}
         value={value}
-        onChangeText={setValue}
+        onChangeText={handleChange}
         placeholder={placeholder}
         onSubmitEditing={onSubmitEditing}
         onEndEditing={onEndEditing}
